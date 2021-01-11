@@ -87,6 +87,99 @@ jobs:
       after_success:
         - bash <(curl -s https://codecov.io/bash) -f /tmp/e2e-cov.out -F e2e
 
+////////////////////////////////// ARM64 JOBS /////////////////////////////////////////////////////////////////////
+
+
+    - stage: Build&Test
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      name: "Build"
+      script:
+        - make cmd
+        - make examples
+    - name: "Code linter"
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      script: make lint || true
+    - name: "Unit tests"
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      before_script:
+        - go get github.com/mattn/goveralls
+      script: make test-cover
+      after_success:
+        - goveralls -coverprofile=/tmp/coverage.out -service=travis-ci
+        - bash <(curl -s https://codecov.io/bash) -f /tmp/coverage.out -F unittests
+
+    - stage: Integration
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      env: VPP_VERSION=1908
+      script:
+        - make verify-binapi
+        - make integration-tests
+    - env: VPP_VERSION=2001
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      script:
+        - make verify-binapi
+        - make integration-tests
+    - env: VPP_VERSION=2005
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      script:
+        - make verify-binapi
+        - make integration-tests
+    - env: VPP_VERSION=2009
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      script:
+        - make verify-binapi
+        - make integration-tests
+
+    - stage: E2E
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      env: VPP_VERSION=1908
+      script:
+        - make e2e-tests-cover
+      after_success:
+        - bash <(curl -s https://codecov.io/bash) -f /tmp/e2e-cov.out -F e2e
+    - env: VPP_VERSION=2001
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      script:
+        - make e2e-tests-cover
+      after_success:
+        - bash <(curl -s https://codecov.io/bash) -f /tmp/e2e-cov.out -F e2e
+    - env: VPP_VERSION=2005
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      script:
+        - make e2e-tests-cover
+      after_success:
+        - bash <(curl -s https://codecov.io/bash) -f /tmp/e2e-cov.out -F e2e
+    - env: VPP_VERSION=2009
+      virt: lxd
+      group: edge
+      arch: arm64-graviton2
+      script:
+        - make e2e-tests-cover
+      after_success:
+        - bash <(curl -s https://codecov.io/bash) -f /tmp/e2e-cov.out -F e2e
+
+
+
 #  allow_failures:
 #    - env: VPP_VERSION=2009
 
